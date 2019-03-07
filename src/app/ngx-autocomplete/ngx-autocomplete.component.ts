@@ -9,10 +9,10 @@ import { Component,
          EventEmitter,
          OnDestroy } from '@angular/core';
 import { NG_VALUE_ACCESSOR, FormControl, ControlValueAccessor } from '@angular/forms';
-import { Observable } from 'rxjs/Observable';
+import { fromEvent } from 'rxjs';
 import { NgxAutocompleteService } from './ngx-autocomplete.service';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { Subject } from 'rxjs/Subject';
+import { distinctUntilChanged, takeUntil, switchMap, debounceTime, filter, map } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'ngx-autocomplete',
@@ -38,7 +38,7 @@ export class NgxAutocompleteComponent implements OnInit, ControlValueAccessor, A
   @Output() selected = new EventEmitter<string>();
   private innerValue: string = '';
   private doQuery: boolean = true;
-  private suggestions: any[];
+  private suggestions: any;
   private activeSuggestionIndex: number = 0;
   private ngUnsubscribe = new Subject();
 
@@ -96,10 +96,12 @@ export class NgxAutocompleteComponent implements OnInit, ControlValueAccessor, A
 
   subscribeForSuggestionsFromApi() {
     this.control.valueChanges
-    .distinctUntilChanged()
-    .debounceTime(500)
-    .switchMap((fieldValue: string) => this.ngxAutocompleteService.getSuggestonsfromApi(this.doQuery, fieldValue, this.apiString, this.paramName, this.payloadPropName || null, this.suggestionPropName || null))
-    .takeUntil(this.ngUnsubscribe)
+    .pipe(
+      distinctUntilChanged(),
+      debounceTime(500),
+      switchMap((fieldValue: string) => this.ngxAutocompleteService.getSuggestonsfromApi(this.doQuery, fieldValue, this.apiString, this.paramName, this.payloadPropName || null, this.suggestionPropName || null)),
+      takeUntil(this.ngUnsubscribe)
+    )
     .subscribe(suggestions => {
       this.suggestions = suggestions;
       this.activeSuggestionIndex = 0;
@@ -108,10 +110,12 @@ export class NgxAutocompleteComponent implements OnInit, ControlValueAccessor, A
 
   subscribeForSuggestionsFromStaticDataSource() {
     this.control.valueChanges
-    .distinctUntilChanged()
-    .debounceTime(500)
-    .switchMap((fieldValue: string) => this.ngxAutocompleteService.getSuggestonsfromStaticDataSource(this.doQuery, fieldValue, this.staticDataSource, this.suggestionPropName || null))
-    .takeUntil(this.ngUnsubscribe)
+    .pipe(
+      distinctUntilChanged(),
+      debounceTime(500),
+      switchMap((fieldValue: string) => this.ngxAutocompleteService.getSuggestonsfromStaticDataSource(this.doQuery, fieldValue, this.staticDataSource, this.suggestionPropName || null)),
+      takeUntil(this.ngUnsubscribe)
+    )
     .subscribe(suggestions => {
       this.suggestions = suggestions;
       this.activeSuggestionIndex = 0;
@@ -119,10 +123,12 @@ export class NgxAutocompleteComponent implements OnInit, ControlValueAccessor, A
   }
 
   subscribeForKeyboardEvents() {
-    Observable.fromEvent(this.elRef.nativeElement, 'keydown')
-    .filter((e: any) => e.keyCode === 40 || e.keyCode === 38 || e.keyCode === 13)
-    .map((e: any) => e.keyCode)
-    .takeUntil(this.ngUnsubscribe)
+    fromEvent(this.elRef.nativeElement, 'keydown')
+    .pipe(
+      filter((e: any) => e.keyCode === 40 || e.keyCode === 38 || e.keyCode === 13),
+      map((e: any) => e.keyCode),
+      takeUntil(this.ngUnsubscribe)
+    )
     .subscribe(keyCode => {
       if (keyCode === 40 && this.activeSuggestionIndex < this.suggestions.length-1) {
         this.activeSuggestionIndex ++;
@@ -135,7 +141,7 @@ export class NgxAutocompleteComponent implements OnInit, ControlValueAccessor, A
   }
 
   subscribeForNoValue() {
-    this.control.valueChanges.takeUntil(this.ngUnsubscribe).subscribe((changes) => {
+    this.control.valueChanges.pipe(takeUntil(this.ngUnsubscribe)).subscribe((changes) => {
       if (this.control.value == '' || this.control.value == null || this.control.value == undefined) {
           this.innerValue = '';      
           this.inputRef.nativeElement.value = '';

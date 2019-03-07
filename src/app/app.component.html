@@ -10,9 +10,8 @@
 
 <form [formGroup]="form">
   <ngx-autocomplete formControlName="keyword"
-                    [control]="form.controls.keyword"
+                    [control]="form.controls['keyword']"
                     [staticDataSource]="weekdays"
                     suggestionPropName="name"
                     (selected)="onSelected($event)"></ngx-autocomplete>
 </form>
-

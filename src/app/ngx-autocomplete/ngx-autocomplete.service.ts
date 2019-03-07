@@ -1,12 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/throw';
-import 'rxjs/add/observable/of';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { pull, forEach, isString } from 'lodash';
+import { tap, map } from 'rxjs/operators';
 
 @Injectable()
 export class NgxAutocompleteService {
@@ -43,7 +40,7 @@ export class NgxAutocompleteService {
       this.keyword = keyword;
       if (doQuery) {
         if (!/\S/.test(keyword)) {
-          return Observable.of([]);
+          return of([]);
         } else {
           const output = [];
           let staticDataSourceMapped = [];
@@ -60,17 +57,17 @@ export class NgxAutocompleteService {
             });
           } else {
             console.error('Please provide with suggestionPropName!');
-            return Observable.of([]);
+            return of([]);
           }
           if (output.length > 0) {
             const outputHighlighted = output.map(this.highlightMatches);
-            return Observable.of(outputHighlighted).do((response: any[]) => this.subject.next(response));
+            return of(outputHighlighted).pipe(tap((response: any[]) => this.subject.next(response)));
           } else {
-            return Observable.of([]);
+            return of([]);
           }
         }
       } else {
-        return Observable.of([]);
+        return of([]);
       } 
     }
 
@@ -83,28 +80,30 @@ export class NgxAutocompleteService {
         this.keyword = keyword;
         if (doQuery) {
           if (!/\S/.test(keyword)) {
-            return Observable.of([]);
+            return of([]);
           } else {
                 return this.http.get(apiString, { params: { [paramName]: keyword } })
-                    .map((response: any) => {
-                      if (payloadPropName !== null) {
-                        if (suggestionPropName !== null) {
-                          return response[payloadPropName].map(value => value[suggestionPropName]).map(this.highlightMatches);
+                    .pipe(
+                      map((response: any) => {
+                        if (payloadPropName !== null) {
+                          if (suggestionPropName !== null) {
+                            return response[payloadPropName].map(value => value[suggestionPropName]).map(this.highlightMatches);
+                          } else {
+                            return response[payloadPropName].map(this.highlightMatches);
+                          }
                         } else {
-                          return response[payloadPropName].map(this.highlightMatches);
+                          if (suggestionPropName !== null) {
+                            return response.map(value => value[suggestionPropName]).map(this.highlightMatches);
+                          } else {
+                            return response.map(this.highlightMatches);
+                          }
                         }
-                      } else {
-                        if (suggestionPropName !== null) {
-                          return response.map(value => value[suggestionPropName]).map(this.highlightMatches);
-                        } else {
-                          return response.map(this.highlightMatches);
-                        }
-                      }
-                    })
-                    .do((response: any[]) => this.subject.next(response));
+                      }),
+                      tap((response: any[]) => this.subject.next(response))
+                    );
           }
         } else {
-          return Observable.of([]);
+          return of([]);
         }   
     }
 
