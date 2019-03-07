@@ -2,7 +2,12 @@
   "name": "@avas/ngx-autocomplete",
   "version": "2.0.0",
   "license": "MIT",
-  "description": "Autocomplete component for Angular4+",
+  "description": "Autocomplete component for Angular6+",
+  "ngPackage": {
+    "lib": {
+      "entryFile": "public_api.ts"
+    }
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -10,7 +15,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "packagr": "ng-packagr -p ng-package.json",
+    "packagr": "ng-packagr -p package.json",
     "publish": "npm publish --access=public"
   },
   "author": "Arpad Vas",
@@ -31,7 +36,7 @@
     "ui component"
   ],
   "private": false,
-  "dependencies": {
+  "peerDependencies": {
     "@angular-devkit/core": "^7.3.5",
     "@angular/animations": "^7.2.8",
     "@angular/common": "^7.2.8",
@@ -44,6 +49,7 @@
     "@angular/router": "^7.2.8",
     "acorn": "^6.1.1",
     "core-js": "^2.6.5",
+    "lodash": "^4.17.11",
     "rxjs": "^6.4.0",
     "tslib": "^1.9.0",
     "zone.js": "^0.8.29"
