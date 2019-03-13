@@ -1,6 +1,6 @@
 # @avas/NgxAutocomplete
 
-Autocomplete component for Angular4+
+Autocomplete component for Angular6+
 
 ## Feautures
 

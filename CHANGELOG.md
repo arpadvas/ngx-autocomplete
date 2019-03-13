@@ -1,3 +1,7 @@
+## v 2.0.0 (2018/02/26)
+* Update to Rxjs6
+* Fix AOT compiling problems
+
 ## v 1.0.0 (2018/02/26)
 * Added keyboard support
 

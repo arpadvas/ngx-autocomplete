@@ -38,8 +38,8 @@ export class NgxAutocompleteComponent implements OnInit, ControlValueAccessor, A
   @Output() selected = new EventEmitter<string>();
   private innerValue: string = '';
   private doQuery: boolean = true;
-  private suggestions: any;
-  private activeSuggestionIndex: number = 0;
+  public suggestions: any;
+  public activeSuggestionIndex: number = 0;
   private ngUnsubscribe = new Subject();
 
   constructor(
